@@ -29,6 +29,9 @@ int main(void)
     CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1; // Set all dividers
     CSCTL0_H = 0; // Lock CS registers
 
+    P2SEL0 &= ~(BIT0 | BIT1);
+    P2SEL1 |= BIT0+BIT1;
+
     // Configure USCI_A0 for UART mode
     UCA0CTLW0 = UCSWRST; // Put eUSCI in reset
     UCA0CTLW0 |= UCSSEL__SMCLK; // CLK = SMCLK
@@ -71,14 +74,15 @@ __interrupt void USCI_A0_ISR(void)
             case 3:
                 TB0CCR3 = 255 - UCA0RXBUF;
                 UCA0TXBUF = (size - 0x03);
+                if(count == size -1){
+                    count = 0;
+                }
                 __no_operation();
-                break;
-            case (size -1):
-                UCA0TXBUF = UCA0RXBUF;
-                __no_operation();
-                count = 0;
                 break;
             default:
+                if(count == size -1){
+                    count = 0;
+                }
                 UCA0TXBUF = UCA0RXBUF;
                 __no_operation();
                 break;
