@@ -1,0 +1,7 @@
+# Ignore everything
+*
+/Milestone_StrangerThings/*
+# But not these files...
+!.gitignore
+!/Milestone_StrangerThings
+!/Milestone_StrangerThings/main.c
