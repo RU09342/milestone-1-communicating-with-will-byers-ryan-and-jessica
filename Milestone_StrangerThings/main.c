@@ -41,13 +41,12 @@ void TimerBInit(void) {
     TB0CCTL2 = OUTMOD_3;
     TB0CCTL3 = OUTMOD_3;
 
-    TB0CCTL0 = CCIE;
+    //Set initial values for CCR1, CCR2, CCR3
+    TB0CCR1 = 200; //Red
+    TB0CCR2 = 200; //Blue
+    TB0CCR3 = 200; //Green
 
-    TB0CCR1 = 512; //Set initial values for CCR1, CCR2, CCR3
-    TB0CCR2 = 512;
-    TB0CCR3 = 512;
-
-    TB0CCR0 = 1024; //Set CCR0 for a ~1kHz clock.
+    TB0CCR0 = 255; //Set CCR0 for a ~1kHz clock.
 
     TB0CTL = TBSSEL_2 + MC_1; //Enable Timer B0 with SMCLK and up mode.
 }
