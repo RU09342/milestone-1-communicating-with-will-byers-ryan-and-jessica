@@ -16,36 +16,36 @@ void TimerBInit(void);
 
 int main(void)
 {
-    WDTCTL = WDTPW | WDTHOLD;               // Stop Watchdog
-    PM5CTL0 &= ~LOCKLPM5;                   //disable HIGHZ
+    WDTCTL = WDTPW | WDTHOLD; // Stop Watchdog timer
+    PM5CTL0 &= ~LOCKLPM5; //Disable high impedance mode.
 
-    LEDInit();
-    TimerBInit();
+    LEDInit(); //Initialize LED pins.
+    TimerBInit(); //Initialize Timer B.
 
     // Startup clock system with max DCO setting ~8MHz
-    CSCTL0_H = CSKEY_H;                     // Unlock CS registers
-    CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
+    CSCTL0_H = CSKEY_H; // Unlock CS registers
+    CSCTL1 = DCOFSEL_3 | DCORSEL; // Set DCO to 8MHz
     CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
-    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
-    CSCTL0_H = 0;                           // Lock CS registers
+    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1; // Set all dividers
+    CSCTL0_H = 0; // Lock CS registers
 
     // Configure USCI_A0 for UART mode
-    UCA0CTLW0 = UCSWRST;                    // Put eUSCI in reset
-    UCA0CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
+    UCA0CTLW0 = UCSWRST; // Put eUSCI in reset
+    UCA0CTLW0 |= UCSSEL__SMCLK; // CLK = SMCLK
     // Baud Rate calculation
     // 8000000/(16*9600) = 52.083
     // Fractional portion = 0.083
     // User's Guide Table 21-4: UCBRSx = 0x04
     // UCBRFx = int ( (52.083-52)*16) = 1
-    UCA0BRW = 52;                           // 8000000/16/9600
+    UCA0BRW = 52; // 8000000/16/9600
     UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900;
-    UCA0CTLW0 &= ~UCSWRST;                  // Initialize eUSCI
-    UCA0IE |= UCRXIE;                       // Enable USCI_A0 RX interrupt
+    UCA0CTLW0 &= ~UCSWRST; // Initialize eUSCI
+    UCA0IE |= UCRXIE; // Enable USCI_A0 RX interrupt
 
     __enable_interrupt(); //Enable interrupts.
 
-    __bis_SR_register(LPM3_bits | GIE);     // Enter LPM3, interrupts enabled
-    __no_operation();                       // For debugger
+    __bis_SR_register(LPM0 + GIE); // Enter LPM0, interrupts enabled
+    __no_operation(); // For debugger
 }
 
 #pragma vector=EUSCI_A0_VECTOR
@@ -90,15 +90,15 @@ __interrupt void USCI_A0_ISR(void)
 
 void LEDInit(void) {
     //For pin 1.4, 1.5, and 3.4, P1DIR = 1, P1SEL0 = 1, P1SEL1 = 0.
-    P1DIR |= RED;
+    P1DIR |= RED; //Pin 1.4
     P1SEL1 &= ~RED;
     P1SEL0 |= RED;
 
-    P1DIR |= BLUE;
+    P1DIR |= BLUE; //Pin 1.5
     P1SEL1 &= ~BLUE;
     P1SEL0 |= BLUE;
 
-    P3DIR |= GREEN;
+    P3DIR |= GREEN; //Pin 3.4
     P3SEL1 &= ~GREEN;
     P3SEL0 |= GREEN;
 }
