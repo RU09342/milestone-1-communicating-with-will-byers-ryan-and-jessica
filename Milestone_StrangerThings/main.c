@@ -64,37 +64,38 @@ __interrupt void USCI_A0_ISR(void)
             {
             case 0:
                 size = UCA0RXBUF;
+                count = count + 1;
                 break;
             case 1:
                 TB0CCR1 = 255-UCA0RXBUF;
+                count = count + 1;
                 break;
             case 2:
                 TB0CCR2 = 255-UCA0RXBUF;
+                count = count + 1;
                 break;
             case 3:
                 TB0CCR3 = 255 - UCA0RXBUF;
                 UCA0TXBUF = (size - 0x03);
-                if(count == size -1){
-                    count = 0;
-                }
                 __no_operation();
+                count = count + 1;
                 break;
             default:
-                if(count == size -1){
-                    count = 0;
-                }
                 UCA0TXBUF = UCA0RXBUF;
                 __no_operation();
+                count = count + 1;
+                if(count > size -1){
+                    count = 0;
+                }
                 break;
             }
-            count = count + 1;
             break;
 
         case USCI_UART_UCTXIFG: break;
         case USCI_UART_UCSTTIFG: break;
         case USCI_UART_UCTXCPTIFG: break;
 
-        default: UCA0TXBUF = UCA0RXBUF;
+        default:
                 break;
 
     }
