@@ -1,5 +1,7 @@
 //Milestone_1- Stranger Things
 //Jessica Wozniak, Ryan Hare, and Timothy Gordon
+
+//Input is RBG
 #include <msp430.h> 
 
 #define RED BIT4 //Pin 1.4 is the TB0CCR1 output pin.
