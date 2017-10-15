@@ -60,24 +60,32 @@ __interrupt void USCI_A0_ISR(void)
             switch (count)
             {
             case 0:
-                {
-                    size = UCA0RXBUF;
-                }
+                size = UCA0RXBUF;
+                break;
             case 1:
-                {
-                    duty[0] = UCA0RXBUF;
-                }
+                TB0CCR1 = 255-UCA0RXBUF;
+                break;
             case 2:
-                {
-                    duty[1] = UCA0RXBUF;
-                }
+                TB0CCR2 = 255-UCA0RXBUF;
+                break;
             case 3:
-                {
-                    duty[2] = UCA0RXBUF;
-                    UCA0TXBUF = (size - 0x03);
-                    __no_operation();
-                }
+                TB0CCR3 = 255 - UCA0RXBUF;
+                UCA0TXBUF = (size - 0x03);
+                __no_operation();
+                break;
+            case (size -1):
+                UCA0TXBUF = UCA0RXBUF;
+                __no_operation();
+                count = 0;
+                break;
+            default:
+                UCA0TXBUF = UCA0RXBUF;
+                __no_operation();
+                break;
             }
+            count = count + 1;
+            break;
+
         case USCI_UART_UCTXIFG: break;
         case USCI_UART_UCSTTIFG: break;
         case USCI_UART_UCTXCPTIFG: break;
