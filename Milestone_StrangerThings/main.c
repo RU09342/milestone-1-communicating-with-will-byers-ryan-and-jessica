@@ -9,43 +9,20 @@
 #define GREEN BIT4 //Pin 3.4 is the TB0CCR3 output pin.
 
 int size;
-int duty[3];
 unsigned int count = 0;
 
 void LEDInit(void);
-
 void TimerBInit(void);
+void UARTInit(void);
 
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD; // Stop Watchdog timer
-    PM5CTL0 &= ~LOCKLPM5; //Disable high impedance mode.
+    PM5CTL0 &= ~LOCKLPM5; //Disable HIGH Z mode
 
     LEDInit(); //Initialize LED pins.
     TimerBInit(); //Initialize Timer B.
-
-    // Startup clock system with max DCO setting ~8MHz
-    CSCTL0_H = CSKEY_H; // Unlock CS registers
-    CSCTL1 = DCOFSEL_3 | DCORSEL; // Set DCO to 8MHz
-    CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
-    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1; // Set all dividers
-    CSCTL0_H = 0; // Lock CS registers
-
-    P2SEL0 &= ~(BIT0 | BIT1);
-    P2SEL1 |= BIT0+BIT1;
-
-    // Configure USCI_A0 for UART mode
-    UCA0CTLW0 = UCSWRST; // Put eUSCI in reset
-    UCA0CTLW0 |= UCSSEL__SMCLK; // CLK = SMCLK
-    // Baud Rate calculation
-    // 8000000/(16*9600) = 52.083
-    // Fractional portion = 0.083
-    // User's Guide Table 21-4: UCBRSx = 0x04
-    // UCBRFx = int ( (52.083-52)*16) = 1
-    UCA0BRW = 52; // 8000000/16/9600
-    UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900;
-    UCA0CTLW0 &= ~UCSWRST; // Initialize eUSCI
-    UCA0IE |= UCRXIE; // Enable USCI_A0 RX interrupt
+    UARTInit(); //Initialize UART
 
     __enable_interrupt(); //Enable interrupts.
 
@@ -65,29 +42,29 @@ __interrupt void USCI_A0_ISR(void)
             switch (count)
             {
             case 0:
-                size = UCA0RXBUF;
-                count = count + 1;
+                size = UCA0RXBUF;             //size of string is equal to RX BUF
+                count = count + 1;            //increment count
                 break;
             case 1:
-                TB0CCR1 = 255-UCA0RXBUF;
-                count = count + 1;
+                TB0CCR1 = 255-UCA0RXBUF;      //duty cycle for RED
+                count = count + 1;            //increment count
                 break;
             case 2:
-                TB0CCR2 = 255-UCA0RXBUF;
-                count = count + 1;
+                TB0CCR2 = 255-UCA0RXBUF;      //duty cycle for BLUE
+                count = count + 1;            //increment count
                 break;
             case 3:
-                TB0CCR3 = 255 - UCA0RXBUF;
-                UCA0TXBUF = (size - 0x03);
+                TB0CCR3 = 255 - UCA0RXBUF;    //duty cycle for GREEN
+                UCA0TXBUF = (size - 0x03);    //TX = size - 3, send rest of HEX string onto next node
                 __no_operation();
-                count = count + 1;
+                count = count + 1;            //increment count
                 break;
             default:
                 UCA0TXBUF = UCA0RXBUF;
                 __no_operation();
-                count = count + 1;
+                count = count + 1; //increment count
                 if(count > size -1 && UCA0RXBUF == 0x0D){
-                    count = 0;
+                    count = 0;  //sets count back to 0, so node can receive another string of HEX
                 }
                 break;
             }
@@ -128,7 +105,26 @@ void TimerBInit(void) {
     TB0CCR2 = 200; //Blue
     TB0CCR3 = 200; //Green
 
-    TB0CCR0 = 255; //Set CCR0 for a ~1kHz clock.
+    TB0CCR0 = 255-1; //Set CCR0 for a ~1kHz clock.
 
     TB0CTL = TBSSEL_2 + MC_1; //Enable Timer B0 with SMCLK and up mode.
+}
+void UARTInit(void){
+
+        CSCTL0_H = CSKEY_H;                         // Unlock CS registers
+        CSCTL1 = DCOFSEL_3 | DCORSEL;               // Set DCO to 8MHz
+        CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
+        CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;       // Set all dividers
+        CSCTL0_H = 0;                               // Lock CS registers
+
+        P2SEL0 &= ~(BIT0 | BIT1);
+        P2SEL1 |= BIT0+BIT1;
+
+        // Configure USCI_A0 for UART mode
+        UCA0CTLW0 = UCSWRST;                        // Put eUSCI in reset
+        UCA0CTLW0 |= UCSSEL__SMCLK;                 // CLK = SMCLK
+        UCA0BRW = 52;                               // 8000000/16/9600
+        UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900;
+        UCA0CTLW0 &= ~UCSWRST;                      // Initialize eUSCI
+        UCA0IE |= UCRXIE;                           // Enable USCI_A0 RX interrupt
 }
