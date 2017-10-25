@@ -126,7 +126,7 @@ void TimerBInit(void) {
     TB0CCR2 = 200; //Blue
     TB0CCR3 = 200; //Green
 
-    TB0CCR0 = 255; //Set CCR0 for a ~1kHz clock.
+    TB0CCR0 = 255-1; //Set CCR0 for a ~1kHz clock.
 
     TB0CTL = TBSSEL_2 + MC_1; //Enable Timer B0 with SMCLK and up mode.
 }
