@@ -86,7 +86,7 @@ __interrupt void USCI_A0_ISR(void)
                 UCA0TXBUF = UCA0RXBUF;
                 __no_operation();
                 count = count + 1;
-                if(count > size -1){
+                if(count > size -1 && UCA0RXBUF == 0x0D){
                     count = 0;
                 }
                 break;
